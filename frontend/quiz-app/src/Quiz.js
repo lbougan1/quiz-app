@@ -1,5 +1,5 @@
 // src/Quiz.js
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import axios from 'axios';
 import './Quiz.css';
 
@@ -11,7 +11,11 @@ const Quiz = () => {
   const [user, setUser] = useState(null);
   const [transition, setTransition] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [showCurrent, setShowCurrent] = useState(true);
+
+  // Memoize the current question to prevent unnecessary re-renders
+  const currentQuestion = useMemo(() => {
+    return questions[currentQuestionIndex] || null;
+  }, [questions, currentQuestionIndex]);
 
   const fetchQuestions = useCallback(async () => {
     try {
@@ -36,7 +40,7 @@ const Quiz = () => {
       // Set viewport to match Telegram Web App dimensions
       const viewport = document.querySelector('meta[name=viewport]');
       if (viewport) {
-        viewport.setAttribute('content', `width=${window.innerWidth}, height=${window.innerHeight}, user-scalable=no`);
+        viewport.setAttribute('content', `width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no`);
       }
 
       const initData = tg.initData;
@@ -55,40 +59,40 @@ const Quiz = () => {
     fetchQuestions();
   }, [fetchQuestions]);
 
-  const handleSubmit = async () => {
-    if (selectedOption && questions.length > 0) {
-      try {
-        const currentQuestion = questions[currentQuestionIndex];
-        const response = await axios.post('http://localhost:5000/api/submit', {
-          answer: selectedOption,
-          currentQuestionId: currentQuestion._id
-        });
+  // Optimized handleSubmit with immediate visual feedback
+  const handleSubmit = useCallback(async () => {
+    if (!selectedOption || !currentQuestion) return;
 
-        if (response.data.correct) {
-          setScore(score + 1);
-        }
+    try {
+      // Immediately show visual feedback
+      setTransition(true);
 
-        // Start transition
-        setTransition(true);
+      // Submit answer in background
+      const response = await axios.post('http://localhost:5000/api/submit', {
+        answer: selectedOption,
+        currentQuestionId: currentQuestion._id
+      });
 
-        // After transition completes, update to next question
-        setTimeout(() => {
-          const nextIndex = currentQuestionIndex + 1;
-          if (nextIndex < questions.length) {
-            setCurrentQuestionIndex(nextIndex);
-            setSelectedOption(null);
-            setTransition(false);
-            setShowCurrent(true);
-          } else {
-            // No more questions
-            setQuestions([]);
-          }
-        }, 500); // Match this with CSS transition duration
-      } catch (error) {
-        console.error('Error submitting the answer:', error);
+      if (response.data.correct) {
+        setScore(prev => prev + 1);
       }
+
+      // Quick transition to next question
+      setTimeout(() => {
+        const nextIndex = currentQuestionIndex + 1;
+        if (nextIndex < questions.length) {
+          setCurrentQuestionIndex(nextIndex);
+          setSelectedOption(null);
+          setTransition(false);
+        } else {
+          setQuestions([]);
+        }
+      }, 200); // Reduced transition time
+    } catch (error) {
+      console.error('Error submitting the answer:', error);
+      setTransition(false);
     }
-  };
+  }, [selectedOption, currentQuestion, currentQuestionIndex, questions.length]);
 
   if (isLoading) {
     return <div className="loading">Loading...</div>;
@@ -98,8 +102,6 @@ const Quiz = () => {
     return <div className="quiz-complete">Quiz completed! Your score: {score}</div>;
   }
 
-  const currentQuestion = questions[currentQuestionIndex];
-
   return (
     <div className="quiz-container">
       <h1>Quiz App</h1>
@@ -107,28 +109,27 @@ const Quiz = () => {
 
       <div className="question-container">
         {/* Current question */}
-        {showCurrent && (
-          <div className={`question-slide ${transition ? 'slide-out' : ''}`}>
-            <p className="question-text">{currentQuestion.question}</p>
-            <div className="options-container">
-              {currentQuestion.options.map((option, index) => (
-                <button
-                  key={index}
-                  onClick={() => setSelectedOption(option)}
-                  className={`option-button ${selectedOption === option ? 'selected' : ''}`}
-                >
-                  {option}
-                </button>
-              ))}
-            </div>
+        <div className={`question-slide ${transition ? 'slide-out' : ''}`}>
+          <p className="question-text">{currentQuestion.question}</p>
+          <div className="options-container">
+            {currentQuestion.options.map((option, index) => (
+              <button
+                key={index}
+                onClick={() => setSelectedOption(option)}
+                className={`option-button ${selectedOption === option ? 'selected' : ''}`}
+                disabled={transition} // Disable during transition
+              >
+                {option}
+              </button>
+            ))}
           </div>
-        )}
+        </div>
       </div>
 
       <button
         className="submit-button"
         onClick={handleSubmit}
-        disabled={!selectedOption}
+        disabled={!selectedOption || transition}
       >
         Submit
       </button>
