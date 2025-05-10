@@ -1,0 +1,113 @@
+/* src/Quiz.css */
+:root {
+    --app-width: 100vw;
+    --app-height: 100vh;
+  }
+  
+  body, html {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+  }
+  
+  .App {
+    width: var(--app-width);
+    height: var(--app-height);
+    overflow: hidden;
+    position: relative;
+  }
+  
+  .quiz-container {
+    width: 100%;
+    height: 100%;
+    padding: 20px;
+    box-sizing: border-box;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .question-container {
+    width: 100%;
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+    margin-bottom: 20px;
+  }
+  
+  .question-slide {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    transition: all 0.5s ease-in-out;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    box-sizing: border-box;
+    padding: 20px;
+  }
+  
+  .question-text {
+    font-size: 1.2rem;
+    margin-bottom: 20px;
+    text-align: center;
+    word-wrap: break-word;
+  }
+  
+  .options-container {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+  
+  .option-button {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    background-color: #007bff;
+    color: white;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    box-sizing: border-box;
+    word-wrap: break-word;
+  }
+  
+  .submit-button {
+    width: 100%;
+    padding: 12px;
+    margin: 20px 0;
+    border: none;
+    border-radius: 8px;
+    background-color: #28a745;
+    color: white;
+    font-size: 1rem;
+    cursor: pointer;
+    box-sizing: border-box;
+  }
+  
+  .score-text {
+    font-size: 1.1rem;
+    text-align: center;
+    margin-top: 20px;
+  }
+  
+  /* Telegram Web App specific styles */
+  @media (max-width: 768px) {
+    .quiz-container {
+      padding: 10px;
+    }
+  
+    .option-button {
+      padding: 10px;
+      font-size: 0.9rem;
+    }
+  }
+  
