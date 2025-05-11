@@ -1,6 +1,7 @@
 // src/Quiz.js
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import axios from 'axios';
+import { CountdownCircleTimer } from 'react-countdown-circle-timer';
 import './Quiz.css';
 
 const Quiz = () => {
@@ -12,6 +13,8 @@ const Quiz = () => {
   const [transition, setTransition] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [answerStatus, setAnswerStatus] = useState(null);
+  const [key, setKey] = useState(0); // For timer reset
+  const [isTimerRunning, setIsTimerRunning] = useState(true);
 
   const currentQuestion = useMemo(() => {
     return questions[currentQuestionIndex] || null;
@@ -62,6 +65,7 @@ const Quiz = () => {
 
     try {
       setTransition(true);
+      setIsTimerRunning(false);
 
       const submitAnswer = async () => {
         try {
@@ -70,14 +74,12 @@ const Quiz = () => {
             currentQuestionId: currentQuestion._id
           });
 
-          // Set answer status for visual feedback
           setAnswerStatus(response.data.correct ? 'correct' : 'wrong');
 
           if (response.data.correct) {
             setScore(prev => prev + 1);
           }
 
-          // Reset after animation
           setTimeout(() => setAnswerStatus(null), 500);
         } catch (error) {
           console.error('Error submitting the answer:', error);
@@ -94,6 +96,8 @@ const Quiz = () => {
           setCurrentQuestionIndex(nextIndex);
           setSelectedOption(null);
           setTransition(false);
+          setIsTimerRunning(true);
+          setKey(prev => prev + 1); // Reset timer
         } else {
           setQuestions([]);
         }
@@ -101,6 +105,7 @@ const Quiz = () => {
     } catch (error) {
       console.error('Error:', error);
       setTransition(false);
+      setIsTimerRunning(true);
     }
   }, [selectedOption, currentQuestion, currentQuestionIndex, questions.length]);
 
@@ -110,6 +115,23 @@ const Quiz = () => {
     if (button) {
       button.classList.add('pressed');
       setTimeout(() => button.classList.remove('pressed'), 100);
+    }
+  };
+
+  const handleTimerComplete = () => {
+    if (currentQuestionIndex < questions.length - 1) {
+      setTransition(true);
+      setIsTimerRunning(false);
+
+      setTimeout(() => {
+        setCurrentQuestionIndex(prev => prev + 1);
+        setSelectedOption(null);
+        setTransition(false);
+        setIsTimerRunning(true);
+        setKey(prev => prev + 1);
+      }, 150);
+    } else {
+      setQuestions([]);
     }
   };
 
@@ -142,6 +164,21 @@ const Quiz = () => {
             ))}
           </div>
         </div>
+      </div>
+
+      <div className="timer-container">
+        <CountdownCircleTimer
+          key={key}
+          isPlaying={isTimerRunning}
+          duration={10} // 10 seconds per question
+          colors={['#0088cc', '#F7B801', '#A30000', '#A30000']}
+          colorsTime={[7, 5, 2, 0]}
+          onComplete={handleTimerComplete}
+          size={60}
+          strokeWidth={6}
+        >
+          {({ remainingTime }) => remainingTime}
+        </CountdownCircleTimer>
       </div>
 
       <button
