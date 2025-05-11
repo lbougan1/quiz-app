@@ -11,8 +11,8 @@ const Quiz = () => {
   const [user, setUser] = useState(null);
   const [transition, setTransition] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [answerStatus, setAnswerStatus] = useState(null);
 
-  // Memoize the current question to prevent unnecessary re-renders
   const currentQuestion = useMemo(() => {
     return questions[currentQuestionIndex] || null;
   }, [questions, currentQuestionIndex]);
@@ -31,13 +31,11 @@ const Quiz = () => {
   }, []);
 
   useEffect(() => {
-    // Initialize Telegram Web App
     if (window.Telegram && window.Telegram.WebApp) {
       const tg = window.Telegram.WebApp;
       tg.ready();
       tg.expand();
 
-      // Set viewport to match Telegram Web App dimensions
       const viewport = document.querySelector('meta[name=viewport]');
       if (viewport) {
         viewport.setAttribute('content', `width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no`);
@@ -59,25 +57,37 @@ const Quiz = () => {
     fetchQuestions();
   }, [fetchQuestions]);
 
-  // Optimized handleSubmit with immediate visual feedback
   const handleSubmit = useCallback(async () => {
     if (!selectedOption || !currentQuestion) return;
 
     try {
-      // Immediately show visual feedback
       setTransition(true);
 
-      // Submit answer in background
-      const response = await axios.post('http://localhost:5000/api/submit', {
-        answer: selectedOption,
-        currentQuestionId: currentQuestion._id
-      });
+      const submitAnswer = async () => {
+        try {
+          const response = await axios.post('http://localhost:5000/api/submit', {
+            answer: selectedOption,
+            currentQuestionId: currentQuestion._id
+          });
 
-      if (response.data.correct) {
-        setScore(prev => prev + 1);
-      }
+          // Set answer status for visual feedback
+          setAnswerStatus(response.data.correct ? 'correct' : 'wrong');
 
-      // Quick transition to next question
+          if (response.data.correct) {
+            setScore(prev => prev + 1);
+          }
+
+          // Reset after animation
+          setTimeout(() => setAnswerStatus(null), 500);
+        } catch (error) {
+          console.error('Error submitting the answer:', error);
+          setAnswerStatus('wrong');
+          setTimeout(() => setAnswerStatus(null), 500);
+        }
+      };
+
+      submitAnswer();
+
       setTimeout(() => {
         const nextIndex = currentQuestionIndex + 1;
         if (nextIndex < questions.length) {
@@ -87,12 +97,21 @@ const Quiz = () => {
         } else {
           setQuestions([]);
         }
-      }, 200); // Reduced transition time
+      }, 150);
     } catch (error) {
-      console.error('Error submitting the answer:', error);
+      console.error('Error:', error);
       setTransition(false);
     }
   }, [selectedOption, currentQuestion, currentQuestionIndex, questions.length]);
+
+  const handleOptionSelect = (option, index) => {
+    setSelectedOption(option);
+    const button = document.querySelector(`.option-button:nth-child(${index + 1})`);
+    if (button) {
+      button.classList.add('pressed');
+      setTimeout(() => button.classList.remove('pressed'), 100);
+    }
+  };
 
   if (isLoading) {
     return <div className="loading">Loading...</div>;
@@ -104,20 +123,19 @@ const Quiz = () => {
 
   return (
     <div className="quiz-container">
-      <h1>Quiz App</h1>
-      {user && <p>Welcome, {user.first_name}!</p>}
+      <h1 className="app-title">Quiz App</h1>
+      {user && <p className="welcome-text">Welcome, {user.first_name}!</p>}
 
       <div className="question-container">
-        {/* Current question */}
         <div className={`question-slide ${transition ? 'slide-out' : ''}`}>
           <p className="question-text">{currentQuestion.question}</p>
           <div className="options-container">
             {currentQuestion.options.map((option, index) => (
               <button
                 key={index}
-                onClick={() => setSelectedOption(option)}
+                onClick={() => handleOptionSelect(option, index)}
                 className={`option-button ${selectedOption === option ? 'selected' : ''}`}
-                disabled={transition} // Disable during transition
+                disabled={transition}
               >
                 {option}
               </button>
@@ -127,13 +145,23 @@ const Quiz = () => {
       </div>
 
       <button
-        className="submit-button"
-        onClick={handleSubmit}
+        className={`submit-button ${answerStatus}`}
+        onClick={() => {
+          handleSubmit();
+          const button = document.querySelector('.submit-button');
+          if (button) {
+            button.classList.add('pressed');
+            setTimeout(() => button.classList.remove('pressed'), 100);
+          }
+        }}
         disabled={!selectedOption || transition}
       >
         Submit
       </button>
-      <p className="score-text">Score: {score}</p>
+
+      <p className="score-text">
+        Score: {score}
+      </p>
     </div>
   );
 };
