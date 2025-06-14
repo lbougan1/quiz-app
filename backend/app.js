@@ -39,29 +39,9 @@ const seedDatabase = async () => {
     if (count === 0) {
       const sampleQuestions = [
         {
-          question: "What is the capital of France?",
-          options: ["Paris", "London", "Berlin", "Madrid"],
-          correctAnswer: "Paris",
-        },
-        {
-          question: "What is the capital of Germany?",
-          options: ["Berlin", "Paris", "London", "Madrid"],
-          correctAnswer: "Berlin",
-        },
-        {
-          question: "What is the capital of Spain?",
-          options: ["Madrid", "Paris", "London", "Berlin"],
-          correctAnswer: "Madrid",
-        },
-        {
-          question: "What is the largest planet in our solar system?",
-          options: ["Earth", "Mars", "Jupiter", "Saturn"],
-          correctAnswer: "Jupiter",
-        },
-        {
-          question: "Who painted the Mona Lisa?",
-          options: ["Leonardo da Vinci", "Vincent van Gogh", "Pablo Picasso", "Michelangelo"],
-          correctAnswer: "Leonardo da Vinci",
+          question: "How much is 2 + 1 ?",
+          options: ["1", "2", "3", "4"],
+          correctAnswer: "3",
         }
       ];
       await Question.insertMany(sampleQuestions);
