@@ -13,8 +13,10 @@ const Quiz = () => {
   const [transition, setTransition] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [answerStatus, setAnswerStatus] = useState(null);
-  const [key, setKey] = useState(0); // For timer reset
+  const [key, setKey] = useState(0);
   const [isTimerRunning, setIsTimerRunning] = useState(true);
+  const [emoji, setEmoji] = useState(null);
+  const [totalQuestions, setTotalQuestions] = useState(0); // Added state for total questions
 
   const currentQuestion = useMemo(() => {
     return questions[currentQuestionIndex] || null;
@@ -25,7 +27,9 @@ const Quiz = () => {
       setIsLoading(true);
       const response = await axios.get('http://localhost:5000/api/questions');
       setQuestions(response.data);
+      setTotalQuestions(response.data.length); // Set total questions count
       setCurrentQuestionIndex(0);
+      setScore(0);
       setIsLoading(false);
     } catch (error) {
       console.error('Error fetching questions:', error);
@@ -56,6 +60,11 @@ const Quiz = () => {
         });
       }
     }
+
+    // Load emoji assets
+    import('./emojiAssets.js').then(module => {
+      setEmoji(module.default);
+    });
 
     fetchQuestions();
   }, [fetchQuestions]);
@@ -97,7 +106,7 @@ const Quiz = () => {
           setSelectedOption(null);
           setTransition(false);
           setIsTimerRunning(true);
-          setKey(prev => prev + 1); // Reset timer
+          setKey(prev => prev + 1);
         } else {
           setQuestions([]);
         }
@@ -140,7 +149,40 @@ const Quiz = () => {
   }
 
   if (questions.length === 0) {
-    return <div className="quiz-complete">Quiz completed! Your score: {score}</div>;
+    const scorePercentage = Math.round((score / totalQuestions) * 100); // Use totalQuestions instead of questions.length
+    let emojiToShow = null;
+    let message = 'Good job!';
+
+    if (scorePercentage >= 80) {
+      emojiToShow = emoji?.excellent || '🎉';
+      message = 'Excellent!';
+    } else if (scorePercentage >= 60) {
+      emojiToShow = emoji?.great || '👍';
+      message = 'Great job!';
+    } else if (scorePercentage >= 40) {
+      emojiToShow = emoji?.good || '🤔';
+      message = 'Good effort!';
+    } else {
+      emojiToShow = emoji?.keepTrying || '😕';
+      message = 'Keep trying!';
+    }
+
+    return (
+      <div className="quiz-complete">
+        <div className="emoji-container">
+          {emojiToShow && typeof emojiToShow === 'string'
+            ? <span>{emojiToShow}</span>
+            : emojiToShow}
+        </div>
+        <h1 className="final-title">Quiz Completed!</h1>
+        <p className="final-message">{message}</p>
+        <div className="score-container">
+          <span className="score-value">{score}</span>
+          <span className="score-divider">/</span>
+          <span className="score-max">{totalQuestions}</span> {/* Use totalQuestions here */}
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -170,7 +212,7 @@ const Quiz = () => {
         <CountdownCircleTimer
           key={key}
           isPlaying={isTimerRunning}
-          duration={10} // 10 seconds per question
+          duration={10}
           colors={['#0088cc', '#F7B801', '#A30000', '#A30000']}
           colorsTime={[7, 5, 2, 0]}
           onComplete={handleTimerComplete}
