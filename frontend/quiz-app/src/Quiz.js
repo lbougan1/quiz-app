@@ -4,19 +4,17 @@ import axios from 'axios';
 import { CountdownCircleTimer } from 'react-countdown-circle-timer';
 import './Quiz.css';
 
-const Quiz = () => {
+const Quiz = ({ user }) => {
   const [questions, setQuestions] = useState([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedOption, setSelectedOption] = useState(null);
   const [score, setScore] = useState(0);
-  const [user, setUser] = useState(null);
   const [transition, setTransition] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [answerStatus, setAnswerStatus] = useState(null);
   const [key, setKey] = useState(0);
   const [isTimerRunning, setIsTimerRunning] = useState(true);
-  const [emoji, setEmoji] = useState(null);
-  const [totalQuestions, setTotalQuestions] = useState(0); // Added state for total questions
+  const [totalQuestions, setTotalQuestions] = useState(0);
 
   const currentQuestion = useMemo(() => {
     return questions[currentQuestionIndex] || null;
@@ -27,7 +25,7 @@ const Quiz = () => {
       setIsLoading(true);
       const response = await axios.get('http://localhost:5000/api/questions');
       setQuestions(response.data);
-      setTotalQuestions(response.data.length); // Set total questions count
+      setTotalQuestions(response.data.length);
       setCurrentQuestionIndex(0);
       setScore(0);
       setIsLoading(false);
@@ -36,38 +34,6 @@ const Quiz = () => {
       setIsLoading(false);
     }
   }, []);
-
-  useEffect(() => {
-    if (window.Telegram && window.Telegram.WebApp) {
-      const tg = window.Telegram.WebApp;
-      tg.ready();
-      tg.expand();
-
-      const viewport = document.querySelector('meta[name=viewport]');
-      if (viewport) {
-        viewport.setAttribute('content', `width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no`);
-      }
-
-      const initData = tg.initData;
-      if (initData) {
-        setUser({
-          id: initData.user?.id,
-          first_name: initData.user?.first_name,
-          last_name: initData.user?.last_name,
-          username: initData.user?.username,
-          photo_url: initData.user?.photo_url,
-          language_code: initData.user?.language_code,
-        });
-      }
-    }
-
-    // Load emoji assets
-    import('./emojiAssets.js').then(module => {
-      setEmoji(module.default);
-    });
-
-    fetchQuestions();
-  }, [fetchQuestions]);
 
   const handleSubmit = useCallback(async () => {
     if (!selectedOption || !currentQuestion) return;
@@ -127,7 +93,7 @@ const Quiz = () => {
     }
   };
 
-  const handleTimerComplete = () => {
+  const handleTimerComplete = useCallback(() => {
     if (currentQuestionIndex < questions.length - 1) {
       setTransition(true);
       setIsTimerRunning(false);
@@ -142,44 +108,48 @@ const Quiz = () => {
     } else {
       setQuestions([]);
     }
-  };
+  }, [currentQuestionIndex, questions.length]);
+
+  useEffect(() => {
+    fetchQuestions();
+  }, [fetchQuestions]);
 
   if (isLoading) {
     return <div className="loading">Loading...</div>;
   }
 
   if (questions.length === 0) {
-    const scorePercentage = Math.round((score / totalQuestions) * 100); // Use totalQuestions instead of questions.length
-    let emojiToShow = null;
+    const scorePercentage = Math.round((score / totalQuestions) * 100);
+    let emoji = '😊';
     let message = 'Good job!';
 
     if (scorePercentage >= 80) {
-      emojiToShow = emoji?.excellent || '🎉';
-      message = 'Excellent!';
+      emoji = '🎉';
+      message = 'Amazing!';
     } else if (scorePercentage >= 60) {
-      emojiToShow = emoji?.great || '👍';
-      message = 'Great job!';
+      emoji = '👍';
+      message = 'Well done!';
     } else if (scorePercentage >= 40) {
-      emojiToShow = emoji?.good || '🤔';
-      message = 'Good effort!';
+      emoji = '🤔';
+      message = 'Not bad!';
     } else {
-      emojiToShow = emoji?.keepTrying || '😕';
+      emoji = '😕';
       message = 'Keep trying!';
     }
 
     return (
       <div className="quiz-complete">
-        <div className="emoji-container">
-          {emojiToShow && typeof emojiToShow === 'string'
-            ? <span>{emojiToShow}</span>
-            : emojiToShow}
-        </div>
-        <h1 className="final-title">Quiz Completed!</h1>
-        <p className="final-message">{message}</p>
-        <div className="score-container">
-          <span className="score-value">{score}</span>
-          <span className="score-divider">/</span>
-          <span className="score-max">{totalQuestions}</span> {/* Use totalQuestions here */}
+        <div className="quiz-complete-emoji">{emoji}</div>
+        <h2 className="quiz-complete-title">Quiz Completed!</h2>
+        <div className="telegram-message-box">
+          <div className="telegram-message-content">
+            <p className="telegram-message-text">{message}</p>
+            <div className="telegram-message-score">
+              <span className="telegram-score-value">{score}</span>
+              <span className="telegram-score-divider">/</span>
+              <span className="telegram-score-max">{totalQuestions}</span>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -188,7 +158,7 @@ const Quiz = () => {
   return (
     <div className="quiz-container">
       <h1 className="app-title">Quiz App</h1>
-      {user && <p className="welcome-text">Welcome, {user.first_name}!</p>}
+      {user && <p className="welcome-text">Welcome, {user.first_name || 'Quizzer'}!</p>}
 
       <div className="question-container">
         <div className={`question-slide ${transition ? 'slide-out' : ''}`}>
@@ -225,14 +195,7 @@ const Quiz = () => {
 
       <button
         className={`submit-button ${answerStatus}`}
-        onClick={() => {
-          handleSubmit();
-          const button = document.querySelector('.submit-button');
-          if (button) {
-            button.classList.add('pressed');
-            setTimeout(() => button.classList.remove('pressed'), 100);
-          }
-        }}
+        onClick={handleSubmit}
         disabled={!selectedOption || transition}
       >
         Submit

@@ -359,3 +359,112 @@ html, body {
     font-size: 2rem;
   }
 }
+
+/* Add to your existing Quiz.css file */
+
+/* Telegram-style message box for quiz complete */
+.telegram-message-box {
+  width: 90%;
+  max-width: 400px;
+  background-color: white;
+  border-radius: 18px;
+  padding: 16px;
+  margin: 20px auto;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e0e0e0;
+}
+
+.telegram-message-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.telegram-message-text {
+  font-size: 1.2rem;
+  font-weight: 500;
+  color: #222;
+  margin: 0;
+  text-align: center;
+  line-height: 1.4;
+}
+
+.telegram-message-score {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.telegram-score-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #0088cc;
+}
+
+.telegram-score-divider {
+  font-size: 1.5rem;
+  font-weight: 300;
+  color: #666;
+}
+
+.telegram-score-max {
+  font-size: 1.5rem;
+  font-weight: 500;
+  color: #666;
+}
+
+/* Quiz complete container */
+.quiz-complete {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  text-align: center;
+  padding: 20px;
+  background-color: #f5f7ff;
+}
+
+.quiz-complete-emoji {
+  font-size: 4rem;
+  margin-bottom: 20px;
+  animation: bounce 1s infinite alternate;
+}
+
+.quiz-complete-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #0088cc;
+  margin: 10px 0 20px;
+}
+
+@keyframes bounce {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-10px); }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .telegram-message-box {
+    width: 95%;
+    max-width: 350px;
+  }
+
+  .telegram-message-text {
+    font-size: 1.1rem;
+  }
+
+  .telegram-score-value {
+    font-size: 1.8rem;
+  }
+
+  .telegram-score-divider {
+    font-size: 1.3rem;
+  }
+
+  .telegram-score-max {
+    font-size: 1.3rem;
+  }
+}

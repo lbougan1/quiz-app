@@ -2,6 +2,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const tonRoutes = require('./tonRoutes');
 const app = express();
 const port = 5000;
 
@@ -118,6 +119,9 @@ app.get('/api/next-question', async (req, res) => {
     res.status(500).json({ message: 'Error fetching next question' });
   }
 });
+
+// TON route
+app.use('/api/ton', tonRoutes);
 
 // Start server after connecting to MongoDB
 connectToMongoDB().then(() => {

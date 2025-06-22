@@ -14,7 +14,7 @@ window.Telegram.WebApp = {
       first_name: 'John',
       last_name: 'Doe',
       username: 'johndoe',
-      photo_url: 'https://example.com/photo/image.jpg',
+      photo_url: 'https://i.redd.it/02g1pfot5ds41.jpg',
       language_code: 'en',
     },
   },
