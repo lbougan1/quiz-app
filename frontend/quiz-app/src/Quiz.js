@@ -35,6 +35,7 @@ const Quiz = ({ user }) => {
     }
   }, []);
 
+
   const handleSubmit = useCallback(async () => {
     if (!selectedOption || !currentQuestion) return;
 

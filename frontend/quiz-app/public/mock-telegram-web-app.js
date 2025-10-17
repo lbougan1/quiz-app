@@ -15,6 +15,7 @@ window.Telegram.WebApp = {
       last_name: 'Doe',
       username: 'johndoe',
       photo_url: 'https://i.redd.it/02g1pfot5ds41.jpg',
+      walletAddress: 'EQC1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
       language_code: 'en',
     },
   },

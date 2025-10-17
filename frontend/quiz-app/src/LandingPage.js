@@ -1,13 +1,7 @@
-// frontend/src/components/LandingPage.js
-import React, { useState } from 'react';
-import { connectTonWallet } from './services/tonService';
+import React from 'react';
 import './LandingPage.css';
 
-const LandingPage = ({ user, onStartQuiz }) => {
-  const [walletConnected, setWalletConnected] = useState(false);
-  const [walletAddress, setWalletAddress] = useState('');
-  const [walletBalance, setWalletBalance] = useState('');
-
+const LandingPage = ({ user, walletAddress, walletConnectionStatus, onStartQuiz }) => {
   const getUserDisplayName = () => {
     if (!user) return null;
     if (user.first_name && user.last_name) return `${user.first_name} ${user.last_name}`;
@@ -15,27 +9,6 @@ const LandingPage = ({ user, onStartQuiz }) => {
     if (user.username) return `@${user.username}`;
     if (user.id) return `User ${user.id}`;
     return null;
-  };
-
-  const handleConnectWallet = async () => {
-    try {
-      if (window.Telegram?.WebApp?.openTelegramWallet) {
-        const wallet = await window.Telegram.WebApp.openTelegramWallet();
-        if (wallet) {
-          const result = await connectTonWallet(wallet.address);
-          if (result.success) {
-            setWalletConnected(true);
-            setWalletAddress(wallet.address);
-            setWalletBalance(result.balance);
-          }
-        }
-      } else {
-        alert('Telegram wallet is not available in this environment');
-      }
-    } catch (error) {
-      console.error('Wallet connection error:', error);
-      alert('Failed to connect wallet');
-    }
   };
 
   const userDisplayName = getUserDisplayName();
@@ -63,28 +36,19 @@ const LandingPage = ({ user, onStartQuiz }) => {
         </div>
 
         <div className="telegram-wallet-section">
-          {!walletConnected ? (
-            <button
-              className="telegram-button telegram-wallet-button"
-              onClick={handleConnectWallet}
-            >
-              <span className="telegram-button-text">Connect TON Wallet</span>
-              <span className="telegram-button-icon">🔗</span>
-            </button>
-          ) : (
-            <div className="telegram-wallet-connected">
-              <div className="telegram-wallet-info">
+          <div className={`telegram-wallet-status-box ${walletAddress ? 'connected' : 'not-connected'}`}>
+            {walletAddress ? (
+              <>
                 <span className="telegram-wallet-label">Wallet:</span>
                 <span className="telegram-wallet-address">
                   {walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}
                 </span>
-              </div>
-              <div className="telegram-wallet-info">
-                <span className="telegram-wallet-label">Balance:</span>
-                <span className="telegram-wallet-balance">{walletBalance}</span>
-              </div>
-            </div>
-          )}
+                <p className="telegram-wallet-status">Wallet is connected successfully.</p>
+              </>
+            ) : (
+              <p className="telegram-wallet-status">Wallet address not found in Telegram account.</p>
+            )}
+          </div>
         </div>
 
         <button

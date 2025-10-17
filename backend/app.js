@@ -123,6 +123,14 @@ app.get('/api/next-question', async (req, res) => {
 // TON route
 app.use('/api/ton', tonRoutes);
 
+// Use the TON routes
+app.use('/api/ton', tonRoutes);
+
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
+
 // Start server after connecting to MongoDB
 connectToMongoDB().then(() => {
   app.listen(port, () => {

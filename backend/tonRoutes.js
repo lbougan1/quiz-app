@@ -2,6 +2,9 @@
 const express = require('express');
 const router = express.Router();
 const tonWalletService = require('./tonWalletService');
+const { handleQuizCompletion } = require('./quizController');
+
+router.post('/quiz/completion', handleQuizCompletion);
 
 
 router.post('/connect', async (req, res) => {
@@ -19,15 +22,15 @@ router.post('/connect', async (req, res) => {
     }
   });
   
-  router.get('/balance/:address', async (req, res) => {
-    try {
-      const { address } = req.params;
-      const balance = await tonWalletService.getWalletBalance(address);
-      res.json({ balance });
-    } catch (error) {
-      console.error('Balance error:', error);
-      res.status(500).json({ error: 'Internal server error' });
-    }
-  });
+router.get('/balance/:address', async (req, res) => {
+  try {
+    const { address } = req.params;
+    const balance = await tonWalletService.getWalletBalance(address);
+    res.json({ balance });
+  } catch (error) {
+    console.error('Balance error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
   
   module.exports = router;
