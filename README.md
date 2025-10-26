@@ -27,7 +27,7 @@ node app.js
 
 #### Importing actual Data. You must create a csv file containing actual question/answer data.
 ```bash
-node importData.js ~/telegram_data/quiz.csv
+node importData.js quiz.csv
 ```
 
 Running the frontend:
